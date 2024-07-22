@@ -4,7 +4,7 @@ from support import import_folder
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, obstacle_sprites, create_attack):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack):
         super().__init__(groups)
         self.image = pygame.image.load('graphics/test/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
@@ -17,7 +17,7 @@ class Player(pygame.sprite.Sprite):
 
         #movement
         self.direction = pygame.math.Vector2()
-        self.speed = 5
+        self.speed = self.stats['speed']
         self.hitbox = self.rect.inflate((0, -26))
 
         #weapon
@@ -25,8 +25,19 @@ class Player(pygame.sprite.Sprite):
         self.attacking_cd = 400
         self.attack_time = None
         self.create_attack = create_attack
+        self.destyor_attack = destroy_attack
         self.weapon_index = 0
-        self.weapon = list(weapon_data.keys())[self.weapon_index]
+        self.weapons = list(weapon_data.keys())
+        self.current_weapon = self.weapons[self.weapon_index]
+        self.can_switch_weapon = True
+        self.switch_time = None
+        self.switch_cd = 200
+
+        #stats
+        self.stats = {'health': 100, 'energy': 60, 'speed': 5, 'magic': 4, 'attack': 10 }
+        self.hp = self.stats['100']
+        self.energy = self.stats['energy']
+        self.exp = 123
 
         self.obstacles = obstacle_sprites
 
@@ -72,6 +83,13 @@ class Player(pygame.sprite.Sprite):
                 self.attacking = True
                 self.attack_time = pygame.time.get_ticks()
                 print(f'ss')
+            if keys[pygame.K_s] and self.can_switch_weapon:
+                self.can_switch_weapon = False
+                self.switch_time = pygame.time.get_ticks()
+                self.weapon_index += 1
+                if self.weapon_index >= len(self.weapons):
+                    self.weapon_index = 0
+                self.current_weapon = self.weapons[self.weapon_index]
 
     def move(self, speed):
         if self.direction.magnitude() != 0:
@@ -95,6 +113,10 @@ class Player(pygame.sprite.Sprite):
         if self.attacking:
             if current_time - self.attack_time >= self.attacking_cd:
                 self.attacking = False
+                self.destyor_attack()
+        if not self.can_switch_weapon:
+            if current_time - self.switch_time >= self.switch_cd:
+                self.can_switch_weapon = True
 
     def animate(self):
         animation = self.animations[self.status]
