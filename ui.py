@@ -2,8 +2,8 @@ import pygame
 from settings import *
 
 class UI:
-    def __init__(self, player):
+    def __init__(self):
         pass
 
-    def displey(self):
+    def displey(self, player):
         pass

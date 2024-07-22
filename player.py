@@ -17,7 +17,6 @@ class Player(pygame.sprite.Sprite):
 
         #movement
         self.direction = pygame.math.Vector2()
-        self.speed = self.stats['speed']
         self.hitbox = self.rect.inflate((0, -26))
 
         #weapon
@@ -35,8 +34,9 @@ class Player(pygame.sprite.Sprite):
 
         #stats
         self.stats = {'health': 100, 'energy': 60, 'speed': 5, 'magic': 4, 'attack': 10 }
-        self.hp = self.stats['100']
+        self.hp = self.stats['health']
         self.energy = self.stats['energy']
+        self.speed = self.stats['speed']
         self.exp = 123
 
         self.obstacles = obstacle_sprites
