@@ -5,6 +5,7 @@ from player import Player
 from debug import debug
 from support import *
 from random import choice
+from weapon import Weapon
 
 
 class Level:
@@ -50,7 +51,10 @@ class Level:
                             surf = graphics['objects'][col]
                             Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
-        self.player = Player((2000, 1400), [self.visible_sprites], self.obstacle_sprites)
+        self.player = Player((2000, 1400), [self.visible_sprites], self.obstacle_sprites, self.create_attack)
+
+    def create_attack(self):
+        Weapon(self.player, [self.visible_sprites, self.obstacle_sprites])
 
     def run(self):
         self.visible_sprites.custom_draw(self.player)
