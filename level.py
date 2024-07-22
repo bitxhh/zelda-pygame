@@ -63,6 +63,9 @@ class Level:
     def create_attack(self):
         self.current_attack = Weapon(self.player, [self.visible_sprites])
 
+    def create_magic(self):
+        pass
+
     def destroy_attack(self):
         if self.current_attack:
             self.current_attack.kill()
@@ -72,7 +75,6 @@ class Level:
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
         self.ui.displey(self.player)
-        debug(self.player.status)
 
 
 class YSortCameraGroup(pygame.sprite.Group):
