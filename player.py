@@ -4,7 +4,7 @@ from support import import_folder
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic):
         super().__init__(groups)
         self.image = pygame.image.load('graphics/test/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
@@ -38,6 +38,9 @@ class Player(pygame.sprite.Sprite):
         self.current_magic = self.magics[self.magic_index]
         self.can_switch_magic = True
         self.magic_switch_time = None
+        self.create_magic = create_magic
+        self.magic_info = list(magic_data.values())
+        print(self.magic_info)
 
         #stats
         self.stats = {'health': 100, 'energy': 60, 'speed': 5, 'magic': 4, 'attack': 10 }
@@ -89,7 +92,10 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_m]:
                 self.attacking = True
                 self.attack_time = pygame.time.get_ticks()
-                print(f'ss')
+                self.create_magic(self.current_magic, self.magic_info[self.magic_index]['cost'], 
+                                  magic_data[self.current_magic]['strength'])
+        
+        #switches
             if keys[pygame.K_s] and self.can_switch_weapon:
                 self.can_switch_weapon = False
                 self.switch_time = pygame.time.get_ticks()
