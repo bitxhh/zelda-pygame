@@ -19,7 +19,6 @@ class UI:
             self.overlay_data[0].append(weapon_data[key]['graphic'])
         for key in magic_data.keys():
             self.overlay_data[1].append(magic_data[key]['graphic'])
-        print(self.overlay_data)
 
     def show_bar(self, current, max_amount, bg_rect, color):
         pygame.draw.rect(self.displey_surface, UI_BG_COLOR, bg_rect)
