@@ -18,13 +18,13 @@ class Level:
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
 
-        #weapon 
+        # weapon
         self.current_attack = None
 
-        #map setup
+        # map setup
         self.create_map()
 
-        #UI
+        # UI
         self.ui = UI()
 
     def create_map(self):
@@ -61,14 +61,18 @@ class Level:
 
                         if style == 'entities':
                             if col == '394':
-                                self.player = Player((x, y), [self.visible_sprites], 
-                                                     self.obstacle_sprites, self.create_attack, 
+                                self.player = Player((x, y), [self.visible_sprites],
+                                                     self.obstacle_sprites, self.create_attack,
                                                      self.destroy_attack, self.create_magic)
                             else:
-                                if col == '390': monster_name = 'bamboo'
-                                elif col == '391': monster_name = 'spirit'
-                                elif col == '392': monster_name = 'raccoon'
-                                else: monster_name = 'squid'
+                                if col == '390':
+                                    monster_name = 'bamboo'
+                                elif col == '391':
+                                    monster_name = 'spirit'
+                                elif col == '392':
+                                    monster_name = 'raccoon'
+                                else:
+                                    monster_name = 'squid'
                                 Enemy(monster_name, (x, y), [self.visible_sprites], self.obstacle_sprites)
 
     def create_attack(self):
@@ -104,15 +108,16 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.offset.x = player.rect.centerx - self.half_width
         self.offset.y = player.rect.centery - self.half_height
 
-        #drawing floor
+        # drawing floor
         floor_offset_pos = self.floor_rect.topleft - self.offset
         self.displey_surface.blit(self.floor_surf, floor_offset_pos)
 
-        for sprite in sorted(self.sprites(), key= lambda sprite: sprite.rect.centery ):
+        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
             offset_pos = sprite.rect.topleft - self.offset
             self.displey_surface.blit(sprite.image, offset_pos)
 
     def enemy_update(self, player):
-        enemy_sprites = [sprite for sprite  in self.sprites() if hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'enemy']
+        enemy_sprites = [sprite for sprite in self.sprites() if
+                         hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'enemy']
         for sprite in enemy_sprites:
             sprite.enemy_update(player)

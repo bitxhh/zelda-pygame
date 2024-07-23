@@ -1,25 +1,25 @@
-import pygame
-from settings import *
 from entity import Entity
+from settings import *
 from support import *
 
 
 class Enemy(Entity):
     def __init__(self, monster_name, pos, groups, obstacle_sprites):
         super().__init__(groups)
+        self.animations = None
         self.sprite_type = 'enemy'
 
-        ##graphic setup
+        # graphic setup
         self.import_graphics(monster_name)
         self.status = 'idle'
         self.image = self.animations[self.status][self.frame]
 
-        #movement
+        # movement
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -10)
         self.obstacles = obstacle_sprites
 
-        #stats
+        # stats
         self.monster_name = monster_name
         monster_info = monster_data[self.monster_name]
         self.health = monster_info['health']
@@ -31,6 +31,10 @@ class Enemy(Entity):
         self.notice_radius = monster_info['notice_radius']
         self.attack_type = monster_info['attack_type']
 
+        # cooldown
+        self.can_attack = True
+        self.attack_time = None
+        self.attack_cd = 1000
 
     def import_graphics(self, name):
         path = f'graphics/monsters/{name}/'
@@ -50,19 +54,50 @@ class Enemy(Entity):
         else:
             direction = pygame.math.Vector2()
 
-        return (distance, direction)
-    
+        return distance, direction
+
     def get_status(self, player):
         distance = self.get_player_distance_direction(player)[0]
 
-        if distance <= self.attack_radius:
+        if distance <= self.attack_radius and self.can_attack:
+            if self.status != 'attack':
+                self.frame = 0
             self.status = 'attack'
-        elif distance in range(self.attack_radius, self.notice_radius):
+        elif distance <= self.notice_radius:
             self.status = 'move'
-        else: self.status = 'idle'
+        else:
+            self.status = 'idle'
+
+    def actions(self, player):
+        if self.status == 'attack':
+            print('attack')
+        elif self.status == 'move':
+            self.direction = self.get_player_distance_direction(player)[1]
+        else:
+            self.direction = pygame.math.Vector2()
+
+    def cooldown(self):
+        if not self.can_attack:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.attack_time >= self.attack_cd:
+                self.can_attack = True
+
+    def animate(self):
+        animation = self.animations[self.status]
+        self.frame += self.animation_speed
+        if self.frame >= len(animation):
+            if self.status == 'attack':
+                self.can_attack = False
+                self.attack_time = pygame.time.get_ticks()
+            self.frame = 0
+        self.image = animation[int(self.frame)]
+        self.rect = self.image.get_rect(center=self.hitbox.center)
 
     def update(self):
         self.move(self.speed)
+        self.animate()
+        self.cooldown()
 
     def enemy_update(self, player):
         self.get_status(player)
+        self.actions(player)
