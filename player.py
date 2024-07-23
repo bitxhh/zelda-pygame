@@ -1,9 +1,10 @@
 import pygame
 from settings import *
 from support import import_folder
+from entity import Entity
 
 
-class Player(pygame.sprite.Sprite):
+class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic):
         super().__init__(groups)
         self.image = pygame.image.load('graphics/test/player.png').convert_alpha()
@@ -93,7 +94,7 @@ class Player(pygame.sprite.Sprite):
                 self.attacking = True
                 self.attack_time = pygame.time.get_ticks()
                 self.create_magic(self.current_magic, self.magic_info[self.magic_index]['cost'], 
-                                  magic_data[self.current_magic]['strength'])
+                                  magic_data[self.current_magic]['strength'] + self.stats['magic'])
         
         #switches
             if keys[pygame.K_s] and self.can_switch_weapon:
@@ -111,15 +112,6 @@ class Player(pygame.sprite.Sprite):
                 if self.magic_index >= len(self.magics):
                     self.magic_index = 0
                 self.current_magic = self.magics[self.magic_index]
-
-    def move(self, speed):
-        if self.direction.magnitude() != 0:
-            self.direction = self.direction.normalize()
-        self.hitbox.x += self.direction.x * speed
-        self.colission('horizontal')
-        self.hitbox.y += self.direction.y * speed
-        self.colission('vertical')
-        self.rect.center = self.hitbox.center
 
     def update_status(self):
         if self.direction.magnitude() == 0:
@@ -150,22 +142,6 @@ class Player(pygame.sprite.Sprite):
         self.image = animation[int(self.frame)]
         self.rect = self.image.get_rect(center=self.hitbox.center)
 
-    def colission(self, direction):
-         if direction == 'horizontal':
-            for sprite in self.obstacles:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.x > 0:
-                        self.hitbox.right = sprite.hitbox.left
-                    if self.direction.x < 0:
-                        self.hitbox.left = sprite.hitbox.right
-
-         if direction == 'vertical':
-             for sprite in self.obstacles:
-                 if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.y > 0:
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0:
-                        self.hitbox.top = sprite.hitbox.bottom
 
     def update(self):
         self.input()
