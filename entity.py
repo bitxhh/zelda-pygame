@@ -5,6 +5,9 @@ from settings import *
 class Entity(pygame.sprite.Sprite):
     def __init__(self, groups):
         super().__init__(groups)
+        self.animation_speed = 0.15
+        self.frame = 0
+        self.direction = pygame.math.Vector2()
 
     def colission(self, direction):
      if direction == 'horizontal':

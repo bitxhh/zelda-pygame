@@ -13,11 +13,8 @@ class Player(Entity):
 
         #animation
         self.status = 'down_idle'
-        self.animation_speed = 0.15
-        self.frame = 0
 
         #movement
-        self.direction = pygame.math.Vector2()
         self.hitbox = self.rect.inflate((0, -26))
 
         #weapon
@@ -41,7 +38,6 @@ class Player(Entity):
         self.magic_switch_time = None
         self.create_magic = create_magic
         self.magic_info = list(magic_data.values())
-        print(self.magic_info)
 
         #stats
         self.stats = {'health': 100, 'energy': 60, 'speed': 5, 'magic': 4, 'attack': 10 }
