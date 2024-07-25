@@ -4,7 +4,7 @@ from support import *
 
 
 class Enemy(Entity):
-    def __init__(self, monster_name, pos, groups, obstacle_sprites):
+    def __init__(self, monster_name, pos, groups, obstacle_sprites, damage_player):
         super().__init__(groups)
         self.animations = None
         self.sprite_type = 'enemy'
@@ -30,8 +30,11 @@ class Enemy(Entity):
         self.attack_radius = monster_info['attack_radius']
         self.notice_radius = monster_info['notice_radius']
         self.attack_type = monster_info['attack_type']
+        self.attacked = False
+        self.attacked_time = None
 
         # cooldown
+        self.damage_player = damage_player
         self.can_attack = True
         self.attack_time = None
         self.attack_cd = 1000
@@ -70,17 +73,37 @@ class Enemy(Entity):
 
     def actions(self, player):
         if self.status == 'attack':
-            print('attack')
+            self.damage_player(self.attack_damage, self.attack_type)
         elif self.status == 'move':
             self.direction = self.get_player_distance_direction(player)[1]
         else:
             self.direction = pygame.math.Vector2()
 
+    def get_damage(self, player, attack_type):
+        if not self.attacked:
+            self.attacked_time = pygame.time.get_ticks()
+            self.direction = self.get_player_distance_direction(player)[1]
+            if attack_type == 'weapon':
+                self.health -= weapon_data[player.current_weapon]['damage'] + player.stats['attack']
+            else:
+                pass
+
+    def check_death(self):
+        if self.health <= 0:
+            self.kill()
+
+    def hit_reaction(self):
+        if self.attacked:
+            self.direction *= -self.resistance
     def cooldown(self):
         if not self.can_attack:
             current_time = pygame.time.get_ticks()
             if current_time - self.attack_time >= self.attack_cd:
                 self.can_attack = True
+        if self.attacked:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.attacked_time >= 400:
+                self.attacked = False
 
     def animate(self):
         animation = self.animations[self.status]
@@ -92,11 +115,17 @@ class Enemy(Entity):
             self.frame = 0
         self.image = animation[int(self.frame)]
         self.rect = self.image.get_rect(center=self.hitbox.center)
+        if self.attacked:
+            self.image.set_alpha(self.wave_value())
+        else:
+            self.image.set_alpha(255)
 
     def update(self):
+        self.hit_reaction()
         self.move(self.speed)
         self.animate()
         self.cooldown()
+        self.check_death()
 
     def enemy_update(self, player):
         self.get_status(player)
