@@ -28,7 +28,10 @@ class AnimationPlayer:
             'thunder': import_sorted_folder('graphics/particles/thunder'),
 
             # monster deaths
-            'squid': import_sorted_folder('graphics/particles/smoke_orange'),
+            'squid': (import_sorted_folder('graphics/particles/smoke_orange'),
+                      import_sorted_folder('graphics/particles/smoke'),
+                      import_sorted_folder('graphics/particles/smoke2')
+                      ),
             'raccoon': import_sorted_folder('graphics/particles/raccoon'),
             'spirit': import_sorted_folder('graphics/particles/nova'),
             'bamboo': import_sorted_folder('graphics/particles/bamboo'),
@@ -50,17 +53,22 @@ class AnimationPlayer:
             )
         }
 
-    def create_grass_particles(self, pos, groups):
+    def create_grass_particles(self, pos, sprite_type, groups):
         animation_frames = choice(self.frames['leaf'])
-        ParticleEffect(pos, animation_frames, groups)
+        ParticleEffect(pos, animation_frames, groups, sprite_type)
+
+    def create_particles(self, animation_type, pos, sprite_type, groups):
+        animation_frames = self.frames[animation_type]
+        ParticleEffect(pos, animation_frames, groups, sprite_type)
 
 
 class ParticleEffect(pygame.sprite.Sprite):
-    def __init__(self, pos, animation_frames, groups):
+    def __init__(self, pos, animation_frames, groups, sprite_type):
         super().__init__(groups)
+        self.sprite_type = sprite_type
         self.frame_index = 0
         self.animation_speed = 0.15
-        self.frames = animation_frames
+        self.frames = choice(animation_frames) if sprite_type == 'squid' else animation_frames
         self.image = self.frames[self.frame_index]
         self.rect = self.image.get_rect(center=pos)
 

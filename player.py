@@ -15,7 +15,7 @@ class Player(Entity):
         self.status = 'down_idle'
 
         #movement
-        self.hitbox = self.rect.inflate((0, -26))
+        self.hitbox = self.rect.inflate((-6, HITBOX_OFFSET['player']))
 
         #weapon
         self.attacking = False
@@ -42,11 +42,15 @@ class Player(Entity):
         self.magic_info = list(magic_data.values())
 
         #stats
-        self.stats = {'health': 100, 'energy': 60, 'speed': 5, 'magic': 4, 'attack': 10 }
-        self.hp = self.stats['health']
+        self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 3 }
+        self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic': 10, 'speed': 6}
+        self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 200}
+        self.hp = self.stats['health'] * 0.8
+        self.start_health = self.stats['health']
         self.energy = self.stats['energy']
+        self.start_energy = self.stats['energy']
         self.speed = self.stats['speed']
-        self.exp = 123
+        self.exp = 10000
 
         self.obstacles = obstacle_sprites
 
@@ -93,7 +97,8 @@ class Player(Entity):
                 self.attack_time = pygame.time.get_ticks()
                 self.create_attack()
         #magic
-            if keys[pygame.K_m]:
+            if keys[pygame.K_m] and self.can_attack:
+                self.can_attack = False
                 self.attacking = True
                 self.attack_time = pygame.time.get_ticks()
                 self.create_magic(self.current_magic, self.magic_info[self.magic_index]['cost'],
@@ -156,11 +161,18 @@ class Player(Entity):
         else:
             self.image.set_alpha(255)
 
+    def energy_recharge(self):
+        if self.energy < self.stats['energy']:
+            self.energy += 0.003 * self.stats['magic']
+        else:
+            self.energy = self.stats['energy']
+
 
     def update(self):
         self.input()
         self.update_status()
         self.animate()
         self.cooldowns()
-        self.move(self.speed)
+        self.move(self.stats['speed'])
+        self.energy_recharge()
 

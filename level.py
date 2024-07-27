@@ -9,11 +9,15 @@ from weapon import Weapon
 from ui import UI
 from enemy import Enemy
 from particles import AnimationPlayer
+from magic import MagicPlayer
+from upgrade import Upgrade_Menu
 
 
 class Level:
     def __init__(self):
         self.displey_surface = pygame.display.get_surface()
+        self.paused = False
+        self.restart = False
 
         # setup sprite groups
         self.visible_sprites = YSortCameraGroup()
@@ -32,6 +36,15 @@ class Level:
 
         # particles
         self.animation_player = AnimationPlayer()
+        self.magic = MagicPlayer(self.animation_player)
+
+        #upgrade-menu
+        self.upgrade_menu = Upgrade_Menu(self.player)
+
+        #sounds
+        self.hit = pygame.mixer.Sound('audio/Hit.wav')
+        main_sound = pygame.mixer.Sound('audio/main.mp3')
+        main_sound.play(loops=-1)
 
     def create_map(self):
         layouts = {
@@ -79,25 +92,35 @@ class Level:
                                     monster_name = 'raccoon'
                                 else:
                                     monster_name = 'squid'
-                                Enemy(monster_name, (x, y), [self.visible_sprites, self.attackable_sprites], self.obstacle_sprites, self.damage_player)
+                                Enemy(monster_name, (x, y), [self.visible_sprites, self.attackable_sprites],
+                                      self.obstacle_sprites, self.damage_player, self.trigger_animation, self.add_xp)
 
     def create_attack(self):
         self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
 
     def create_magic(self, style, cost, strength):
-        print(style, cost, strength)
+        if style == 'heal':
+            self.magic.heal(self.player, self.player.rect.center, cost, strength, [self.visible_sprites])
+        if style == 'flame':
+            self.magic.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
 
     def destroy_attack(self):
         if self.current_attack:
             self.current_attack.kill()
         self.current_attack = None
-
+    def add_xp(self, amount):
+        self.player.exp += amount
+    def toggle_menu(self):
+        self.paused = not self.paused
+    def trigger_animation(self, pos, particle_type, sprite_type):
+        self.animation_player.create_particles(particle_type, pos, sprite_type, [self.visible_sprites])
     def damage_player(self, amount, attack_type):
         if not self.player.attacked:
+            self.hit.play()
             self.player.hp -= amount
             self.player.attacked = True
             self.player.hurt_time = pygame.time.get_ticks()
-            #
+            self.animation_player.create_particles(attack_type, self.player.rect.center,  'damage', [self.visible_sprites])
     def player_attack_logic(self):
         if self.attack_sprites:
             for sprite in self.attack_sprites:
@@ -106,18 +129,21 @@ class Level:
                     for target_sprite in collision_sprites:
                         if target_sprite.sprite_type == 'grass':
                             for leaf in range(randint(3, 6)):
-                                self.animation_player.create_grass_particles(target_sprite.rect.center, [self.visible_sprites])
+                                self.animation_player.create_grass_particles(target_sprite.rect.center, 'grass_particles', [self.visible_sprites])
                             target_sprite.kill()
                         else:
                             target_sprite.get_damage(self.player, sprite.sprite_type)
                             target_sprite.attacked = True
     def run(self):
         self.visible_sprites.custom_draw(self.player)
-        self.visible_sprites.update()
-        self.visible_sprites.enemy_update(self.player)
-        self.player_attack_logic()
-        self.ui.displey(self.player)
-
+        self.ui.displey(self.player, self.paused)
+        print(len(self.visible_sprites))
+        if self.paused:
+            self.upgrade_menu.display()
+        else:
+            self.visible_sprites.update()
+            self.visible_sprites.enemy_update(self.player)
+            self.player_attack_logic()
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):

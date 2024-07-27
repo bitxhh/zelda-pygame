@@ -4,15 +4,17 @@ from support import *
 
 
 class Enemy(Entity):
-    def __init__(self, monster_name, pos, groups, obstacle_sprites, damage_player):
+    def __init__(self, monster_name, pos, groups, obstacle_sprites, damage_player, trigger_animation, add_xp):
         super().__init__(groups)
         self.animations = None
         self.sprite_type = 'enemy'
+        self.add_xp = add_xp
 
         # graphic setup
         self.import_graphics(monster_name)
         self.status = 'idle'
         self.image = self.animations[self.status][self.frame]
+        self.trigger_animation = trigger_animation
 
         # movement
         self.rect = self.image.get_rect(topleft=pos)
@@ -86,11 +88,13 @@ class Enemy(Entity):
             if attack_type == 'weapon':
                 self.health -= weapon_data[player.current_weapon]['damage'] + player.stats['attack']
             else:
-                pass
+                self.health -= magic_data[player.current_magic]['strength'] + player.stats['magic']
 
     def check_death(self):
         if self.health <= 0:
             self.kill()
+            self.trigger_animation(self.rect.center, self.monster_name, self.monster_name)
+            self.add_xp(self.exp)
 
     def hit_reaction(self):
         if self.attacked:
