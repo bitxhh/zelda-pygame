@@ -62,7 +62,8 @@ class Upgrade_Menu:
             item = Item(left, top, self.width, self.height, index, self.font)
             self.item_list.append(item)
 
-    def display(self):
+    def display(self, player):
+        self.player = player
         self.input()
         self.cooldown()
         for index, item in enumerate(self.item_list):

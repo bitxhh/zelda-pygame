@@ -1,15 +1,18 @@
 import pygame
+import sys
 from settings import *
 from support import import_folder
 from entity import Entity
 
 
 class Player(Entity):
-    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, reset):
         super().__init__(groups)
         self.image = pygame.image.load('graphics/test/player.png').convert_alpha()
+        self.display_surface = pygame.display.get_surface()
         self.rect = self.image.get_rect(topleft=pos)
         self.import_assets()
+        self.reset = reset
 
         #animation
         self.status = 'down_idle'
@@ -44,13 +47,14 @@ class Player(Entity):
         #stats
         self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 3 }
         self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic': 10, 'speed': 6}
-        self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 200}
+        self.upgrade_cost = {'health': 120, 'energy': 120, 'attack': 200, 'magic': 100, 'speed': 200}
         self.hp = self.stats['health'] * 0.8
         self.start_health = self.stats['health']
         self.energy = self.stats['energy']
         self.start_energy = self.stats['energy']
         self.speed = self.stats['speed']
-        self.exp = 10000
+        self.exp = 0
+        self.alive = True
 
         self.obstacles = obstacle_sprites
 
@@ -58,6 +62,8 @@ class Player(Entity):
         self.attacked = False
         self.hurt_time = None
         self.invulnarable_time = 450
+        self.sword_sound = pygame.mixer.Sound('audio/sword.wav')
+
     def import_assets(self):
         path = 'graphics/player/'
         self.animations = {'up': [], 'down': [], 'left': [], 'right': [],
@@ -92,6 +98,7 @@ class Player(Entity):
 
         #attacking
             if keys[pygame.K_SPACE] and self.can_attack:
+                self.sword_sound.play()
                 self.can_attack = False
                 self.attacking = True
                 self.attack_time = pygame.time.get_ticks()
@@ -121,6 +128,9 @@ class Player(Entity):
                     self.magic_index = 0
                 self.current_magic = self.magics[self.magic_index]
 
+            if keys[pygame.K_l]:
+                self.reset()
+
     def update_status(self):
         if self.direction.magnitude() == 0:
             self.status = self.status.split('_')[0] + '_idle'
@@ -149,6 +159,10 @@ class Player(Entity):
             if current_time - self.hurt_time >= self.invulnarable_time:
                 self.attacked = False
 
+        if not self.can_step:
+            if current_time - self.step_time >= 500:
+                self.can_step = True
+
     def animate(self):
         animation = self.animations[self.status]
         self.frame += self.animation_speed
@@ -167,12 +181,27 @@ class Player(Entity):
         else:
             self.energy = self.stats['energy']
 
-
+    def check_death(self):
+        if self.hp <= 0:
+            self.alive = False
     def update(self):
-        self.input()
-        self.update_status()
-        self.animate()
-        self.cooldowns()
-        self.move(self.stats['speed'])
-        self.energy_recharge()
+        if self.alive:
+            self.input()
+            self.update_status()
+            self.animate()
+            self.cooldowns()
+            self.move(self.stats['speed'])
+            self.energy_recharge()
+            self.check_death()
+        else:
+            text_surf = pygame.font.Font(UI_FONT, 180).render('You dead', False, TEXT_COLOR)
+            text_surf2 = pygame.font.Font(UI_FONT, 40).render('Enter to restart', False, TEXT_COLOR)
+            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGTH // 2))
+            text_rect2 = text_surf2.get_rect(center=(WIDTH // 2, HEIGTH // 2 + 100))
+            self.display_surface.blit(text_surf, text_rect)
+            self.display_surface.blit(text_surf2, text_rect2)
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RETURN]:
+                self.reset()
+
 

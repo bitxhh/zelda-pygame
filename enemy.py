@@ -20,6 +20,7 @@ class Enemy(Entity):
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -10)
         self.obstacles = obstacle_sprites
+        self.can_step = False
 
         # stats
         self.monster_name = monster_name
@@ -34,6 +35,8 @@ class Enemy(Entity):
         self.attack_type = monster_info['attack_type']
         self.attacked = False
         self.attacked_time = None
+        self.death_sound = pygame.mixer.Sound('audio/death.mp3')
+        self.attack_sound = pygame.mixer.Sound(monster_info['attack_sound'])
 
         # cooldown
         self.damage_player = damage_player
@@ -76,6 +79,7 @@ class Enemy(Entity):
     def actions(self, player):
         if self.status == 'attack':
             self.damage_player(self.attack_damage, self.attack_type)
+            self.attack_sound.play()
         elif self.status == 'move':
             self.direction = self.get_player_distance_direction(player)[1]
         else:
@@ -95,6 +99,7 @@ class Enemy(Entity):
             self.kill()
             self.trigger_animation(self.rect.center, self.monster_name, self.monster_name)
             self.add_xp(self.exp)
+            self.death_sound.play()
 
     def hit_reaction(self):
         if self.attacked:
@@ -134,3 +139,4 @@ class Enemy(Entity):
     def enemy_update(self, player):
         self.get_status(player)
         self.actions(player)
+

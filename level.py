@@ -18,6 +18,7 @@ class Level:
         self.displey_surface = pygame.display.get_surface()
         self.paused = False
         self.restart = False
+        self.all_sprites = pygame.sprite.Group()
 
         # setup sprite groups
         self.visible_sprites = YSortCameraGroup()
@@ -82,7 +83,8 @@ class Level:
                             if col == '394':
                                 self.player = Player((x, y), [self.visible_sprites],
                                                      self.obstacle_sprites, self.create_attack,
-                                                     self.destroy_attack, self.create_magic)
+                                                     self.destroy_attack, self.create_magic,
+                                                     self.reset)
                             else:
                                 if col == '390':
                                     monster_name = 'bamboo'
@@ -137,13 +139,21 @@ class Level:
     def run(self):
         self.visible_sprites.custom_draw(self.player)
         self.ui.displey(self.player, self.paused)
-        print(len(self.visible_sprites))
         if self.paused:
-            self.upgrade_menu.display()
+            self.upgrade_menu.display(self.player)
         else:
             self.visible_sprites.update()
             self.visible_sprites.enemy_update(self.player)
             self.player_attack_logic()
+    def reset(self):
+        for sprite in self.visible_sprites:
+            sprite.kill()
+        for sprite in self.attackable_sprites:
+            sprite.kill()
+        for sprite in self.obstacle_sprites:
+            sprite.kill()
+        del self.player
+        self.create_map()
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):

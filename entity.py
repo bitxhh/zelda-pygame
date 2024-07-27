@@ -9,6 +9,10 @@ class Entity(pygame.sprite.Sprite):
         self.animation_speed = 0.15
         self.frame = 0
         self.direction = pygame.math.Vector2()
+        self.steps = pygame.mixer.Sound('audio/steps.mp3')
+        self.steps.set_volume(0.2)
+        self.can_step = True
+        self.step_time = None
 
     def colission(self, direction):
         if direction == 'horizontal':
@@ -29,6 +33,10 @@ class Entity(pygame.sprite.Sprite):
     def move(self, speed):
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
+            if self.can_step:
+                self.steps.play()
+                self.can_step = False
+                self.step_time = pygame.time.get_ticks()
         self.hitbox.x += self.direction.x * speed
         self.colission('horizontal')
         self.hitbox.y += self.direction.y * speed

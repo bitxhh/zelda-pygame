@@ -8,7 +8,8 @@ class MagicPlayer:
         self.particles_player = particles_player
         self.direction = pygame.math.Vector2()
         self.sounds = {
-            'heal': pygame.mixer.Sound('audio/heal.wav')
+            'heal': pygame.mixer.Sound('audio/heal.wav'),
+            'flame': pygame.mixer.Sound('audio/flame.mp3')
         }
 
     def heal(self, player, pos, cost, strength, groups):
@@ -23,6 +24,7 @@ class MagicPlayer:
 
     def flame(self, player, cost, groups):
         if player.energy >= cost:
+            self.sounds['flame'].play()
             player.energy -= cost
             if '_idle' in player.status:
                 if player.status == 'right_idle': self.direction = pygame.math.Vector2(1, 0)
